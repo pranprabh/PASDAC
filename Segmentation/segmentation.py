@@ -25,15 +25,6 @@ def segment(data):
 
     """
 
-    segmentation_settings = SETTINGS['SEGMENTATION_TECHNIQUE']
-
-    if segmentation_settings['method'] == 'slidingWindow':
-        return segment_sliding_window(data, segmentation_settings['winSizeSecond'],
-                                      segmentation_settings['stepSizeSecond'])
-
-    else:
-        raise ValueError("Invalid segmentation technique")
-
 
 def segment_sliding_window(data, winSizeMillisecond=1000, stepSizeMillisecond=100):
     """Sliding window algorithm realization Output 'segments'
@@ -63,14 +54,14 @@ def segment_sliding_window(data, winSizeMillisecond=1000, stepSizeMillisecond=10
         raise ValueError("Step size %.2f must not be larger than window size %.2f",
                          stepSizeSecond, winSizeSecond)
 
-    start_time = data['Time'].iloc[0]
-    end_time = data['Time'].iloc[-1]
+    startTime = data['Time'].iloc[0]
+    endTime = data['Time'].iloc[-1]
 
-    segments_start = np.arange(start_time, end_time - winSizeMillisecond, stepSizeMillisecond)
-    segments_end = segments_start + winSizeMillisecond
+    segmentStart = np.arange(startTime, endTime - winSizeMillisecond, stepSizeMillisecond)
+    segmentEnd = segmentStart + winSizeMillisecond
 
-    segment = pd.DataFrame({'Start': segments_start,
-                            'End': segments_end},
+    segment = pd.DataFrame({'Start': segmentStart,
+                            'End': segmentEnd},
                            columns=['Start', 'End'])
 
     return segment
