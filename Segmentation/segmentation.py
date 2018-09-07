@@ -30,7 +30,6 @@ def segment_sliding_window(data, winSizeMillisecond=1000, stepSizeMillisecond=10
     """Sliding window algorithm realization Output 'segments'
     contains start and end indexes for each step
 
-    Comment: we do not handle large dataFrame
 
     Assumption
     ----------
@@ -38,8 +37,9 @@ def segment_sliding_window(data, winSizeMillisecond=1000, stepSizeMillisecond=10
 
     Parameters
     ----------
-    data:           dataFrame
-    SETTINGS:       object
+    data:                   dataFrame
+    winSizeMillisecond:     int
+    stepSizeMillisecond:    int > 0
 
     Return
     ------
@@ -48,11 +48,10 @@ def segment_sliding_window(data, winSizeMillisecond=1000, stepSizeMillisecond=10
     """
 
     logger.info("Sliding window with win size %.2f second and step size %.2f second",
-                winSizeSecond, stepSizeSecond)
+                winSizeMillisecond, stepSizeMillisecond)
 
-    if stepSizeSecond > winSizeSecond:
-        raise ValueError("Step size %.2f must not be larger than window size %.2f",
-                         stepSizeSecond, winSizeSecond)
+    if stepSizeMillisecond <= 0:
+        raise ValueError("Step size must be larger than 0!")
 
     startTime = data['Time'].iloc[0]
     endTime = data['Time'].iloc[-1]
