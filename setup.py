@@ -1,4 +1,5 @@
 from distutils.core import setup
+# from setuptools import setup
 
 setup(
 	name='PASDAC',
@@ -7,8 +8,8 @@ setup(
 	url='https://github.com/HAbitsLab/PASDAC',
 	description='Time Series Classification Pipeline',
 	author='Nabil Alshurafa',
-	author_email='nabil@',
-	license='Creative Commons Attribution-Noncommercial-Share Alike license',
+	author_email='nabil@northwestern.edu',
+	license='MIT',
 	long_description=open('README.md').read(),
 
 )
