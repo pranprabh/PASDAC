@@ -30,7 +30,7 @@ Steps:
 
 
 
-def resample(dataDf, setting, samplingRate, nearestNeighbor=0, fixedTimeColumn=None, starttime=None):
+def resample(dataDf, setting, samplingRate, gapTolerance=0, fixedTimeColumn=None, starttime=None):
     """Classifier implementing signal resampling method commonly in preprocessing stage.
     Parameters
     ----------
@@ -38,10 +38,10 @@ def resample(dataDf, setting, samplingRate, nearestNeighbor=0, fixedTimeColumn=N
     setting : setting dictionary
     samplingRate : int
         Number of samples per second
-    nearestNeighbor: int
-        if the distance between target point and either of the neighbors is further than nearestNeighbor in millisecond,
+    gapTolerance: int
+        if the distance between target point and either of the neighbors is further than gapTolerance in millisecond,
         then interpolation is nan
-        if nearestNeighbor=0, the nearestNeighbor rule will not exist
+        if gapTolerance=0, the gapTolerance rule will not exist
 
     Examples
     --------
@@ -82,21 +82,20 @@ def resample(dataDf, setting, samplingRate, nearestNeighbor=0, fixedTimeColumn=N
     """
 
     originalNameOrder = list(dataDf.columns.values)
-    print(dataDf)
+    # print(dataDf)
 
-    unixtimeArr = dataDf[setting['TimeCol']].as_matrix()
+    unixtimeArr = dataDf[setting['TimeCol']].values
     deltaT = 1000.0/samplingRate
     
     dataDf = dataDf.drop(setting['TimeCol'], axis=1)
-    # dataArr = dataDf.as_matrix().astype(float)
-    dataArr = dataDf.as_matrix()
+    # dataArr = dataDf.values.astype(float)
+    dataArr = dataDf.values
     names = list(dataDf.columns.values)
 
     n = len(unixtimeArr)
     newDataList = []
 
     if fixedTimeColumn is None:
-
         #Looping through columns to apply the resampling method for each column
         for c in range(dataArr.shape[1]):
             signalArr = dataArr[:,c]
@@ -129,8 +128,11 @@ def resample(dataDf, setting, samplingRate, nearestNeighbor=0, fixedTimeColumn=N
                         break
 
                 # interpolate in the right interval
-                if nearestNeighbor == 0 or ((abs(unixtimeArr[tInd-1]-t)<=nearestNeighbor) and (abs(unixtimeArr[tInd]-t)<=nearestNeighbor)):
-                    s = interpolate(unixtimeArr[tInd-1], signalArr[tInd-1], unixtimeArr[tInd], signalArr[tInd], t)
+                if gapTolerance == 0 or \
+                    ((abs(unixtimeArr[tInd-1]-t)<=gapTolerance) and \
+                    (abs(unixtimeArr[tInd]-t)<=gapTolerance)):
+                    s = interpolate(unixtimeArr[tInd-1], signalArr[tInd-1], \
+                                    unixtimeArr[tInd], signalArr[tInd], t)
                 else:
                     s = np.nan
 
@@ -155,7 +157,6 @@ def resample(dataDf, setting, samplingRate, nearestNeighbor=0, fixedTimeColumn=N
         dataDf = dataDf[originalNameOrder]
 
     else:  #if fixedTimeColumn not None:
-
         #Looping through columns to apply the resampling method for each column
         for c in range(dataArr.shape[1]):
             signalArr = dataArr[:,c]
@@ -166,6 +167,7 @@ def resample(dataDf, setting, samplingRate, nearestNeighbor=0, fixedTimeColumn=N
 
             t = fixedTimeColumn[iFixedTime]
             tInd = 0
+            outOfRange = 1
             
             # check that the signal has more than one element
             if n<2:
@@ -178,14 +180,20 @@ def resample(dataDf, setting, samplingRate, nearestNeighbor=0, fixedTimeColumn=N
                 for i in range(i0,n):
                     if  t <= unixtimeArr[i]:#we found the needed time index
                         tInd = i
+                        outOfRange = 0
                         break
 
-                if tInd == 0:
+                if outOfRange:
                     s = np.nan
                 else:
                     # interpolate in the right interval
-                    if nearestNeighbor == 0 or ((abs(unixtimeArr[tInd-1]-t)<=nearestNeighbor) and (abs(unixtimeArr[tInd]-t)<=nearestNeighbor)):
-                        s = interpolate(unixtimeArr[tInd-1], signalArr[tInd-1], unixtimeArr[tInd], signalArr[tInd], t)
+                    if gapTolerance == 0 or \
+                        ((abs(unixtimeArr[tInd-1]-t)<=gapTolerance) and \
+                        (abs(unixtimeArr[tInd]-t)<=gapTolerance)):
+                        s = interpolate(unixtimeArr[tInd-1], signalArr[tInd-1], \
+                                        unixtimeArr[tInd], signalArr[tInd], t)
+                    elif tInd == 0: # not in above case
+                        s = signalArr[tInd]
                     else:
                         s = np.nan
 
@@ -335,28 +343,37 @@ def test_case1():
 
     unix = np.array([1500000000000,1500000000048,1500000000075,1500000000349,1500000000375])
     df['unixtime'] = unix
+    print('Before resampling:')
     print(df)
+    print('')
 
-    newDf = resample(df, setting, 20, nearestNeighbor=50)
+    newDf = resample(df, setting, 20, gapTolerance=50)
+    print('After resampling:')
     print(newDf)
 
     newDf = newDf.dropna(axis=0, how='any')
+    print('')
+    print('After dropna:')
+    print(newDf)
 
 
 
 
-    fixedTimeCol = newDf['unixtime'].as_matrix()
+    fixedTimeCol = newDf['unixtime'].values
 
 
 
     df1 = pd.DataFrame(np.arange(100,115).reshape(5,3),
                       columns=['D', 'E', 'F'])
 
-    unix = np.array([1500000000001,1500000000047,1500000000077,1500000000300,1500000000375])
+    unix = np.array([1500000000000,1500000000047,1500000000077,1500000000300,1500000000375])
     df1['unixtime'] = unix
+
+    print('')
+    print('Before resampling:')
     print(df1)
 
-    newDf1 = resample(df1, setting, 20, nearestNeighbor=50, fixedTimeColumn=fixedTimeCol)
+    newDf1 = resample(df1, setting, 20, gapTolerance=50, fixedTimeColumn=fixedTimeCol)
 
     newDf = newDf.set_index("unixtime")
     newDf1 = newDf1.set_index("unixtime")
@@ -365,6 +382,8 @@ def test_case1():
  
     newDf_concat = newDf_concat.dropna(axis=0, how='any')
     
+    print('After resampling:')
+    print('After dropna:')
     print(newDf_concat)
 
 
@@ -454,12 +473,12 @@ def main():
 
             anc_df_concat = anc_df_concat.sort_values(setting['TimeCol'])
 
-            anc_df_resample = resample(anc_df_concat, setting, newSamplingRate, nearestNeighbor=gapTolerance)
+            anc_df_resample = resample(anc_df_concat, setting, newSamplingRate, gapTolerance=gapTolerance)
             anc_df_resample = anc_df_resample.dropna(axis=0, how='any')
 
             anc_df_resample.to_csv(os.path.join(anchor_out_folder, group[0][:-4]+'_resample_gaptolerance'+str(gapTolerance)+'.csv'), index=False)
 
-            fixedTimeCol = anc_df_resample[setting['TimeCol']].as_matrix()
+            fixedTimeCol = anc_df_resample[setting['TimeCol']].values
 
 
 
@@ -480,7 +499,7 @@ def main():
             boat_df_concat = boat_df_concat.sort_values(setting['TimeCol'])
 
 
-            boat_df_resample = resample(boat_df_concat, setting, newSamplingRate, nearestNeighbor=gapTolerance, fixedTimeColumn=fixedTimeCol)
+            boat_df_resample = resample(boat_df_concat, setting, newSamplingRate, gapTolerance=gapTolerance, fixedTimeColumn=fixedTimeCol)
 
             boat_df_resample = boat_df_resample.set_index(setting['TimeCol'])
             anc_df_resample = anc_df_resample.set_index(setting['TimeCol'])
@@ -495,23 +514,6 @@ def main():
 
 if __name__ == '__main__':
 
-
     test_case1()
     # test_case2()
-
     # main()
-
-    exit()
-
-
-
-
-
-
-    
-
-
-
-
-
-
