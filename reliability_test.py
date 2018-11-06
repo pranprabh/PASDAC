@@ -20,15 +20,20 @@ Arguments:
 
 from __future__ import division
 import os
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import sys
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def get_sample_counts(totalTime):
+    """
 
-    idleSecondCount = 0
+    :param totalTime:
+    :return:
+    """
+
+    noDataSecondCount = 0
     reliabilityTimeList = []
     reliabilitySampleCountsList = []
     count = 0
@@ -38,23 +43,32 @@ def get_sample_counts(totalTime):
             count += 1
         else:
             reliabilityTimeList.append(totalTime[i])
+            # count+1 instead of count because it's looking at the next second
             reliabilitySampleCountsList.append(count+1)
             count = 0
+            # when you don't have data
             for time in range(totalTime[i] + 1, totalTime[i+1]):
                 reliabilityTimeList.append(time)
+                # append 0 to noData seconds
                 reliabilitySampleCountsList.append(0)
-                idleSecondCount += 1
+                noDataSecondCount += 1
 
     reliabilityTimeList.append(totalTime[-1])
     reliabilitySampleCountsList.append(count + 1)
     countDf = pd.DataFrame({'Time':reliabilityTimeList,'SampleCounts':reliabilitySampleCountsList},\
         columns=['Time','SampleCounts'])
 
-    return countDf, idleSecondCount
+    return countDf, noDataSecondCount
 
 
-def write_results(outfolder, countDf, samplingFreq=20):
+def write_results(outfolder, countDf, idealCntInUnit=20):
+    """
 
+    :param outfolder:
+    :param countDf:
+    :param idealCntInUnit:
+    :return:
+    """
     countDf.to_csv(os.path.join(outfolder, 'reliability.csv'), index=False)
     countDf['Time'] = pd.to_datetime(countDf['Time'], unit='s', utc=True)
     print("Duration: {}".format(countDf.Time.iloc[-1] - countDf.Time.iloc[0]))
@@ -67,32 +81,50 @@ def write_results(outfolder, countDf, samplingFreq=20):
     plt.title('Frequency')
     plt.savefig(os.path.join(outfolder, 'reliability(frequency).png'))
 
-    countNonIdleDf = countDf[countDf.SampleCounts != 0]
-    countNonIdleArr = countNonIdleDf.SampleCounts.values
-    samplingFreqArr = np.full_like(countNonIdleArr, samplingFreq)
-    countNonIdleArr = np.minimum(countNonIdleArr, samplingFreqArr)
-    reliabilityNonIdle = np.sum(countNonIdleArr)/np.sum(samplingFreqArr)
+    countHasDataUnitsDf = countDf[countDf.SampleCounts != 0]
+    countHasDataUnitsArr = countHasDataUnitsDf.SampleCounts.values
+    samplingFreqArr = np.full_like(countHasDataUnitsArr, idealCntInUnit)
+    countHasDataUnitsArr = np.minimum(countHasDataUnitsArr, samplingFreqArr)
+    reliabilityHasDataUnits = np.sum(countHasDataUnitsArr)/np.sum(samplingFreqArr)
 
-    print("Reliability for non-idle seconds: {}".format(reliabilityNonIdle))
+    print("Reliability for has-data units(seconds or minutes or hours): {}".format(reliabilityHasDataUnits))
 
     countArr = countDf.SampleCounts.values
-    samplingFreqArr = np.full_like(countArr, samplingFreq)
+    samplingFreqArr = np.full_like(countArr, idealCntInUnit)
     countArr = np.minimum(countArr, samplingFreqArr)
     reliability = np.sum(countArr)/np.sum(samplingFreqArr)
 
-    print("Reliability for all the seconds: {}".format(reliability))
+    print("Reliability for all the units(seconds or minutes or hours): {}".format(reliability))
 
 
 
 if __name__ == "__main__":
-    # get the file path where the sampled data and timestamp are saved
-    filePath = str(sys.argv[1])
-    # specify the path where plot and count-per-second file will be saved.
-    resultPath = str(sys.argv[2])
-    # get the column of timestamp in data file
-    timestampCol = int(sys.argv[3])
-    # get the sensor frequency setting
-    sensorFreq = int(sys.argv[4])
+    # # get the file path where the sampled data and timestamp are saved
+    # filePath = str(sys.argv[1])
+    # # specify the path where plot and count-per-second file will be saved.
+    # resultPath = str(sys.argv[2])
+    # # get the column of timestamp in data file
+    # timestampCol = int(sys.argv[3])
+    # # get the sensor frequency setting
+    # sensorFreq = int(sys.argv[4])
+
+    filePath = './08-24-17_08.csv'
+    resultPath = './second'
+    timestampCol = 1
+    unit = 'second'
+    sensorFreq = 20
+
+    idealCntInUnits = {
+        "second": sensorFreq,
+        "minute": sensorFreq*60,
+        "hour": sensorFreq*3600,
+    }
+
+    msecCnts = {
+        "second": 1000,
+        "minute": 60000,
+        "hour": 3600000,
+    }
 
     if not os.path.exists(resultPath):
         os.makedirs(resultPath)
@@ -105,10 +137,21 @@ if __name__ == "__main__":
         print("Data file {} does not exists.".format(filePath))
         exit()
 
-    timeNoDuplicateArr = np.floor_divide(timeNoDuplicateArr, 1000).astype(int)
+    # requirement: convert unixtimestamp in millisecond ?
+
+    timeNoDuplicateArr = np.floor_divide(timeNoDuplicateArr, msecCnts[unit]).astype(int)
     timeNoDuplicateArr = np.sort(timeNoDuplicateArr)
 
     countDf, _ = get_sample_counts(timeNoDuplicateArr)
-    write_results(resultPath, countDf, sensorFreq)
+    write_results(resultPath, countDf, idealCntInUnits[unit])
+
+ # function and script name the same
+ #    options for second , minute, hour
+ #  modification: more comments
+ #    add y label in figure
+ #    non-idle -> hasData
+
+ #    one function: reliability_calc(dataDf, unit=["second","minute","hour"], save=0)
+
 
  
