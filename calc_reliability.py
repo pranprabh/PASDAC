@@ -1,31 +1,34 @@
 """
-In terminal, run command: 
-python reliability_test.py [data file path] [output result and plot path] [column of timestamp in data file] [sensor frequency setting]
-
-Arguments:
-------------------------------------------------------------------------------------
-[data file path]: 
-    File path where the sampled data and timestamp are saved.
-
-[output result and plot path]: 
-    The path where plot and count-per-second file will be saved.
-
-[column of timestamp in data file]:  
-    The column of timestamp in data file. Eg, if the timestamp is in the first column, then [column of timestamp in data file] = 1
-
-[sensor frequency setting]: 
-    Sensor frequency setting
-
 Development log:
 
 1. function and script name the same - done
 2. options for second, minute, hour - done
 3. modification: more comments - done
-4. (add y label in figure. - no figure saving)
+4. (add y label in figure. - no figure saving) plot or not, to add one param y
 5. non-idle -> hasData - done
 6. one function: reliability_calc(dataDf, unit=["second","minute","hour"], save=0)
 
+
+[participant]
+    [device]
+        [sensor]
+            [day]:
+                [hour]: csv(s)
+        [sensor_reliability]: same structure as [day] folder, csv(s)
+
+# USE THIS FORMAT:
+# 'acc'---'20180824'---'2018082408.csv'
+# 'acc_reliability'--'20180824.csv'
+#                 --'20180824'--'2018082408.csv'
+#
+# 'gyr'---'20180824'---'2018082408.csv'
+# 'gyr_reliability'--'20180824.csv'
+#                 --'20180824'--'2018082408.csv'
+
 """
+
+
+
 
 from __future__ import division
 import os
@@ -35,7 +38,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def calc_reliability(timeArr, unit, saveFolder, saveInFile=1):
+def calc_reliability(timeArr, sensorFreq, unit, saveFolder, saveInFile=1):
     """
     Calculate the reliability of time series data from sensor.
 
@@ -43,6 +46,8 @@ def calc_reliability(timeArr, unit, saveFolder, saveInFile=1):
     :param unit: str, options: "second", "minute", "hour"
     :return countDf: reliability result dataframe with columns 'Time' and 'SampleCounts'.
     """
+
+    # generate the reliability dataframe
 
     msecCnts = {
         "second": 1000,
@@ -82,11 +87,18 @@ def calc_reliability(timeArr, unit, saveFolder, saveInFile=1):
     if saveInFile:
         countDf.to_csv(os.path.join(saveFolder, 'reliability.csv'), index=False)
 
+    # 
+    idealCntInUnits = {
+        "second": sensorFreq,
+        "minute": sensorFreq*60,
+        "hour": sensorFreq*3600,
+    }
+
 
     return countDf
 
 
-def write_results(outfolder, countDf, sensorFreq, unit=20):
+def write_results(outfolder, countDf, sensorFreq, unit):
     """
 
     :param outfolder:
@@ -154,7 +166,7 @@ if __name__ == "__main__":
 
     try:
         df = pd.read_csv(filePath)
-        timeArr = df.iloc[:,timestampCol-1].as_matrix()
+        timeArr = df.iloc[:,timestampCol-1].values
     except Exception:
         print("Data file {} does not exists.".format(filePath))
         exit()
