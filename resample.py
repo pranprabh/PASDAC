@@ -18,7 +18,6 @@ Steps:
   A. Take the anchor sensor's time column as target time column
   B. Same as Step 2(B), when gap >0.5s, set value as nan
 
-    
 
 Action items:
 1. change all namings - done
@@ -199,12 +198,12 @@ def resample(dataDf, setting, samplingRate, gapTolerance=0, fixedTimeColumn=None
                     s = np.nan
                 else:
                     # interpolate in the right interval
-                    if gapTolerance == 0 or \
-                        (abs(unixtimeArr[tIndAfter-1]-unixtimeArr[tIndAfter])<=gapTolerance):
+                    if tIndAfter == 0: # means unixtimeArr[0] > t, there is no element smaller than t
+                        s = np.nan
+                    elif gapTolerance == 0 or \
+                        (abs(unixtimeArr[tIndAfter-1] - unixtimeArr[tIndAfter]) <= gapTolerance):
                         s = interpolate(unixtimeArr[tIndAfter-1], signalArr[tIndAfter-1], \
                                         unixtimeArr[tIndAfter], signalArr[tIndAfter], t)
-                    elif tIndAfter == 0: # not in above case
-                        s = signalArr[tIndAfter]
                     else:
                         s = np.nan
 
@@ -267,35 +266,21 @@ def create_folder(f, deleteExisting=False):
 
 
 def test_case1():
-
     setting = {'TimeCol':'unixtime'}
     df = pd.DataFrame(np.arange(15).reshape(5,3),
                       columns=['A', 'B', 'C'])
-
     unix = np.array([1500000000000,1500000000048,1500000000075,1500000000349,1500000000375])
     df['unixtime'] = unix
-    print('Before resampling:')
-    print(df)
-    print('')
-
     newDf = resample(df, setting, 20, gapTolerance=50)
-    print('After resampling:')
-    print(newDf)
-
     newDf = newDf.dropna(axis=0, how='any')
-    print('')
-    print('After dropna:')
     print(newDf)
-
 
     fixedTimeCol = newDf['unixtime'].values
+
     df1 = pd.DataFrame(np.arange(100,115).reshape(5,3),
                       columns=['D', 'E', 'F'])
-    unix = np.array([1500000000000,1500000000047,1500000000077,1500000000300,1500000000375])
+    unix = np.array([1499999999999,1500000000047,1500000000077,1500000000300,1500000000375])
     df1['unixtime'] = unix
-
-    print('')
-    print('Before resampling:')
     print(df1)
 
     newDf1 = resample(df1, setting, 20, gapTolerance=50, fixedTimeColumn=fixedTimeCol)
@@ -303,11 +288,8 @@ def test_case1():
     newDf1 = newDf1.set_index("unixtime")
     newDfConcat = pd.concat([newDf,newDf1],axis=1)
     newDfConcat = newDfConcat.dropna(axis=0, how='any')
-    
-    print('After resampling:')
-    print('After dropna:')
-    print(newDfConcat)
 
+    print(newDfConcat)
 
 
 def test_case2():
@@ -340,34 +322,50 @@ def test_case3():
     setting = {'TimeCol':'unixtime'}
     df = pd.DataFrame(np.arange(15).reshape(5,3),
                       columns=['A', 'B', 'C'])
+
     unix = np.array([1500000000000,1500000000048,1500000000075,1500000000349,1500000000375])
     df['unixtime'] = unix
+    print('Before resampling:')
+    print(df)
+    print('')
+
     newDf = resample(df, setting, 20, gapTolerance=50)
-    newDf = newDf.dropna(axis=0, how='any')
+    print('After resampling:')
     print(newDf)
 
-    fixedTimeCol = newDf['unixtime'].values
+    newDf = newDf.dropna(axis=0, how='any')
+    print('')
+    print('After dropna:')
+    print(newDf)
 
+
+    fixedTimeCol = newDf['unixtime'].values
     df1 = pd.DataFrame(np.arange(100,115).reshape(5,3),
                       columns=['D', 'E', 'F'])
-    unix = np.array([1499999999999,1500000000047,1500000000077,1500000000300,1500000000375])
+    unix = np.array([1500000000001,1500000000047,1500000000077,1500000000300,1500000000375])
     df1['unixtime'] = unix
+
+    print('')
+    print('Before resampling:')
     print(df1)
 
     newDf1 = resample(df1, setting, 20, gapTolerance=50, fixedTimeColumn=fixedTimeCol)
     newDf = newDf.set_index("unixtime")
     newDf1 = newDf1.set_index("unixtime")
     newDfConcat = pd.concat([newDf,newDf1],axis=1)
+    print('After resampling:')
     newDfConcat = newDfConcat.dropna(axis=0, how='any')
-
+    print(newDfConcat)
+    
+    print('After dropna:')
     print(newDfConcat)
 
 
 
 if __name__ == '__main__':
 
-    # test_case1()
+    test_case1()
     # test_case2()
-    test_case3()
+    # test_case3()
 
 
