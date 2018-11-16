@@ -10,7 +10,7 @@ Development log:
     1. function and script name the same - done
     2. options for second, minute, hour - done
     3. modification: more comments - done
-    4. (add y label in figure. - no figure saving) plot or not, to add one param y
+    4. (add y label in figure. - no figure saving) plot or not, to add one param y - done
     5. non-idle -> hasData - done
     6. add plot switch: reliability_calc(timeArr, sensorFreq, unit, plot=0) - done
     7. another script named 'save_reliability.py' - done
