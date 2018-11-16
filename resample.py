@@ -37,19 +37,24 @@ import os
 from datetime import datetime, timedelta
 import inspect
 
+# todo: look into np.inf to replace 0
 
-def resample(dataDf, timeColHeader, samplingRate, gapTolerance=0, fixedTimeColumn=None):
+def resample(dataDf, timeColHeader, samplingRate, gapTolerance=np.inf, fixedTimeColumn=None):
     """
     Parameters
     ----------
     dataDf : data dataframe, contains unixtime column and data column(s)
+
     timeColHeader : string, time column header
+
     samplingRate : int
         Number of samples per second
-    gapTolerance: int
+
+    gapTolerance: int(ms)
         if the distance between target point and either of the neighbors is further than gapTolerance in millisecond,
         then interpolation is nan
         if gapTolerance=0, the gapTolerance rule will not exist
+
     fixedTimeColumn:
 
     Examples
@@ -373,7 +378,7 @@ def merge_test_case1():
     newDfConcat = pd.concat([newDf1,newDf2],axis=1)
     newDfConcat = newDfConcat.dropna(axis=0, how='any')
 
-    print('After merging and dropna:')
+    print('\nAfter merging and dropna:')
     print(newDfConcat)
 
 
@@ -444,7 +449,7 @@ if __name__ == '__main__':
 
     # resample_test_case1()
     # resample_test_case2()
-    merge_test_case1()
-    # merge_test_case2()
+    # merge_test_case1()
+    merge_test_case2()
 
 
