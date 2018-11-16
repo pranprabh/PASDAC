@@ -106,7 +106,8 @@ def calc_reliability(timeArr, sensorFreq, unit, plot=0):
 
         f = plt.figure(figsize=(12,5))
         countDf.plot(style=['b-'], ax=f.gca())
-        plt.title('Frequency')
+        plt.title('Reliability Test')
+        plt.ylabel('Count Per Unit')
         plt.show()
         # plt.savefig(os.path.join(outfolder, 'reliability(frequency).png')) # FYI, save fig function
 
@@ -130,7 +131,7 @@ def test_case():
         exit()
 
     # requirement: unixtimestamp must be in milliseconds
-    countDf = calc_reliability(timeArr, sensorFreq, unit, plot=0)
+    countDf = calc_reliability(timeArr, sensorFreq, unit, plot=1)
     print(countDf)
 
 
