@@ -1,28 +1,32 @@
 """
-Highlight:
-1. Adopt the anchor sensor scheme
-2. Process by day-level continuous data block (in fact decided by watch battery life time)
+Functionality:
+    Resample time series data with linear interplation method based on 
+        a). a fixed sampling rate, or
+        b). a given list of sampling positions
 
+    When resampling based on a given list of sampling positions, 
+        you can merge two sensors‘ time series data together at common sampling positions
 
 Steps:
 
-1. Anchor sensor: read in all continuous data block in day level,
-  A. Put data files into groups according to continuity
-  B. Read in one data block at a time according to continuity groups
+    1. Anchor sensor: read in all continuous data block in day level,
+      A. Put data files into groups according to continuity
+      B. Read in one data block at a time according to continuity groups
 
-2. Anchor sensor: resampling within each data block
-  A. Take the first entry time of a block as start time
-  B. When there is a gap in the data, if gap > 0.5 s, set value as nan, otherwise take interpolation value
+    2. Anchor sensor: resampling within each data block
+      A. Take the first entry time of a block as start time
+      B. When there is a gap in the data, if gap > 0.5 s, set value as nan, otherwise take interpolation value
 
-3. Boat sensor: resampling anchored to anchor sensor
-  A. Take the anchor sensor's time column as target time column
-  B. Same as Step 2(B), when gap >0.5s, set value as nan
+    3. Boat sensor: resampling anchored to anchor sensor
+      A. Take the anchor sensor's time column as target time column
+      B. Same as Step 2(B), when gap >0.5s, set value as nan
 
 
 Action items:
 1. change all namings - done
-2. 'linearInterpl' in description
-3. setting -> timeColHeader
+2. 'linear interplation' in description - done
+3. settings -> timeColHeader - done
+4. move 'if n<2: return' out of loop - done
  
 """
 
@@ -34,22 +38,23 @@ from datetime import datetime, timedelta
 import inspect
 
 
-def resample(dataDf, setting, samplingRate, gapTolerance=0, fixedTimeColumn=None, starttime=None):
-    """Classifier implementing signal resampling method commonly in preprocessing stage.
+def resample(dataDf, timeColHeader, samplingRate, gapTolerance=0, fixedTimeColumn=None):
+    """
     Parameters
     ----------
-    dataDf : data dataframe containing unixtime column and data column(s)
-    setting : setting dictionary
+    dataDf : data dataframe, contains unixtime column and data column(s)
+    timeColHeader : string, time column header
     samplingRate : int
         Number of samples per second
     gapTolerance: int
         if the distance between target point and either of the neighbors is further than gapTolerance in millisecond,
         then interpolation is nan
         if gapTolerance=0, the gapTolerance rule will not exist
+    fixedTimeColumn:
 
     Examples
     --------
-    >>> setting = {'TimeCol':'unixtime'}
+    >>> timeColHeader = 'unixtime'
     >>> df = pd.DataFrame(np.arange(20).reshape(5,4),
                       columns=['unixtime', 'A', 'B', 'C'])
 
@@ -63,7 +68,7 @@ def resample(dataDf, setting, samplingRate, gapTolerance=0, fixedTimeColumn=None
     3  1500000000100  13  14  15
     4  1500000000150  17  18  19
     >>> newSamplingRate = 20
-    >>> newDf = resample(df, setting, newSamplingRate)
+    >>> newDf = resample(df, timeColHeader, newSamplingRate)
     >>> print(newDf)
             unixtime          A          B          C
     0  1500000000000   1.000000   2.000000   3.000000
@@ -72,7 +77,7 @@ def resample(dataDf, setting, samplingRate, gapTolerance=0, fixedTimeColumn=None
     3  1500000000150  17.000000  18.000000  19.000000
 
     >>> newSamplingRate = 33
-    >>> newDf = resample(df, setting, newSamplingRate)
+    >>> newDf = resample(df, timeColHeader, newSamplingRate)
     >>> print(newDf)
             unixtime          A          B          C
     0  1500000000000   1.000000   2.000000   3.000000
@@ -107,10 +112,10 @@ def resample(dataDf, setting, samplingRate, gapTolerance=0, fixedTimeColumn=None
 
     originalNameOrder = list(dataDf.columns.values)
 
-    unixtimeArr = dataDf[setting['TimeCol']].values
+    unixtimeArr = dataDf[timeColHeader].values
     deltaT = 1000.0/samplingRate
     
-    dataDf = dataDf.drop(setting['TimeCol'], axis=1)
+    dataDf = dataDf.drop(timeColHeader, axis=1)
     dataArr = dataDf.values
     names = list(dataDf.columns.values)
 
@@ -162,7 +167,7 @@ def resample(dataDf, setting, samplingRate, gapTolerance=0, fixedTimeColumn=None
             newDataArr = np.transpose(np.array(newDataList))
 
         dataDf = pd.DataFrame(data = newDataArr, columns = names)
-        dataDf[setting['TimeCol']] = np.array(newUnixtimeList)
+        dataDf[timeColHeader] = np.array(newUnixtimeList)
 
         # change to the original column order
         dataDf = dataDf[originalNameOrder]
@@ -179,10 +184,6 @@ def resample(dataDf, setting, samplingRate, gapTolerance=0, fixedTimeColumn=None
             t = fixedTimeColumn[iFixedTime]
             tIndAfter = 0
             outOfRange = 1
-            
-            # check that the signal has more than one element
-            if n<2:
-                return
 
             # iterate through the original signal
             while True:
@@ -225,7 +226,7 @@ def resample(dataDf, setting, samplingRate, gapTolerance=0, fixedTimeColumn=None
             newDataArr = np.transpose(np.array(newDataList))
 
         dataDf = pd.DataFrame(data = newDataArr, columns = names)
-        dataDf[setting['TimeCol']] = np.array(newUnixtimeList)
+        dataDf[timeColHeader] = np.array(newUnixtimeList)
 
         # change to the original column order
         dataDf = dataDf[originalNameOrder]
@@ -265,13 +266,13 @@ def create_folder(f, deleteExisting=False):
         os.makedirs(f)
 
 
-def test_case1():
-    setting = {'TimeCol':'unixtime'}
+def resample_test_case1():
+    timeColHeader = 'unixtime'
     df = pd.DataFrame(np.arange(15).reshape(5,3),
                       columns=['A', 'B', 'C'])
     unix = np.array([1500000000000,1500000000048,1500000000075,1500000000349,1500000000375])
     df['unixtime'] = unix
-    newDf = resample(df, setting, 20, gapTolerance=50)
+    newDf = resample(df, timeColHeader, 20, gapTolerance=50)
     newDf = newDf.dropna(axis=0, how='any')
     print(newDf)
 
@@ -283,7 +284,7 @@ def test_case1():
     df1['unixtime'] = unix
     print(df1)
 
-    newDf1 = resample(df1, setting, 20, gapTolerance=50, fixedTimeColumn=fixedTimeCol)
+    newDf1 = resample(df1, timeColHeader, 20, gapTolerance=50, fixedTimeColumn=fixedTimeCol)
     newDf = newDf.set_index("unixtime")
     newDf1 = newDf1.set_index("unixtime")
     newDfConcat = pd.concat([newDf,newDf1],axis=1)
@@ -292,9 +293,8 @@ def test_case1():
     print(newDfConcat)
 
 
-def test_case2():
-    # resample
-    setting = {'TimeCol':'Time'}
+def resample_test_case2():
+    timeColHeader = 'Time'
 
     SENSORS = ['GYROSCOPE', 'ACCELEROMETER']
 
@@ -314,58 +314,137 @@ def test_case2():
             if not file.startswith('.'):
                 df = pd.read_csv(os.path.join(PATH, file))
 
-                newDf = resample(df, setting, newSamplingRate)
+                newDf = resample(df, timeColHeader, newSamplingRate)
                 newDf.to_csv(os.path.join(OUT_PATH, file), index=None)
 
 
-def test_case3():
-    setting = {'TimeCol':'unixtime'}
-    df = pd.DataFrame(np.arange(15).reshape(5,3),
+def merge_test_case1():
+    # ==================================================================================
+    # dataframes preparation
+    # ==================================================================================
+
+    timeColHeader = 'unixtime'
+    df1 = pd.DataFrame(np.arange(15).reshape(5,3),
                       columns=['A', 'B', 'C'])
 
     unix = np.array([1500000000000,1500000000048,1500000000075,1500000000349,1500000000375])
-    df['unixtime'] = unix
-    print('Before resampling:')
-    print(df)
-    print('')
-
-    newDf = resample(df, setting, 20, gapTolerance=50)
-    print('After resampling:')
-    print(newDf)
-
-    newDf = newDf.dropna(axis=0, how='any')
-    print('')
-    print('After dropna:')
-    print(newDf)
-
-
-    fixedTimeCol = newDf['unixtime'].values
-    df1 = pd.DataFrame(np.arange(100,115).reshape(5,3),
-                      columns=['D', 'E', 'F'])
-    unix = np.array([1500000000001,1500000000047,1500000000077,1500000000300,1500000000375])
     df1['unixtime'] = unix
 
-    print('')
-    print('Before resampling:')
+    df2 = pd.DataFrame(np.arange(100,115).reshape(5,3),
+                      columns=['D', 'E', 'F'])
+    unix = np.array([1499999999999,1500000000047,1500000000077,1500000000300,1500000000375])
+    df2['unixtime'] = unix
+
+
+    # ==================================================================================
+    # df1 resampling based on a given sampling rate
+    # ==================================================================================
+
+    print('df1 before resampling:')
     print(df1)
 
-    newDf1 = resample(df1, setting, 20, gapTolerance=50, fixedTimeColumn=fixedTimeCol)
-    newDf = newDf.set_index("unixtime")
+    newDf1 = resample(df1, timeColHeader, 20, gapTolerance=50)
+    newDf1 = newDf1.dropna(axis=0, how='any')
+
+    print('\ndf1 after resampling and dropna:')
+    print(newDf1)
+
+
+    # ==================================================================================
+    # df2 resampling based on a given list of sampling positions
+    # ==================================================================================
+
+    print('\ndf2 before resampling:')
+    print(df2)
+
+    fixedTimeCol = newDf1['unixtime'].values
+    newDf2 = resample(df2, timeColHeader, 20, gapTolerance=50, fixedTimeColumn=fixedTimeCol)
+    newDf2 = newDf2.dropna(axis=0, how='any')
+
+    print('\ndf2 after resampling and dropna:')
+    print(newDf2)
+
+    # ==================================================================================
+    # df1 and df2 merging
+    # ==================================================================================
+
     newDf1 = newDf1.set_index("unixtime")
-    newDfConcat = pd.concat([newDf,newDf1],axis=1)
-    print('After resampling:')
+    newDf2 = newDf2.set_index("unixtime")
+    newDfConcat = pd.concat([newDf1,newDf2],axis=1)
     newDfConcat = newDfConcat.dropna(axis=0, how='any')
+
+    print('After merging and dropna:')
     print(newDfConcat)
-    
-    print('After dropna:')
+
+
+
+def merge_test_case2():
+    # ==================================================================================
+    # dataframes preparation
+    # ==================================================================================
+
+    timeColHeader = 'unixtime'
+    df1 = pd.DataFrame(np.arange(15).reshape(5,3),
+                      columns=['A', 'B', 'C'])
+
+    unix = np.array([1500000000000,1500000000048,1500000000075,1500000000349,1500000000375])
+    df1['unixtime'] = unix
+
+    df2 = pd.DataFrame(np.arange(100,115).reshape(5,3),
+                      columns=['D', 'E', 'F'])
+    unix = np.array([1500000000001,1500000000047,1500000000077,1500000000300,1500000000375])
+    df2['unixtime'] = unix
+
+
+    # ==================================================================================
+    # df1 resampling based on a given sampling rate
+    # ==================================================================================
+
+    print('df1 before resampling:')
+    print(df1)
+
+    newDf1 = resample(df1, timeColHeader, 20, gapTolerance=50)
+    newDf1 = newDf1.dropna(axis=0, how='any')
+
+    print('\ndf1 after resampling and dropna:')
+    print(newDf1)
+
+
+    # ==================================================================================
+    # df2 resampling based on a given list of sampling positions
+    # ==================================================================================
+
+    print('\ndf2 before resampling:')
+    print(df2)
+
+    fixedTimeCol = newDf1['unixtime'].values
+    newDf2 = resample(df2, timeColHeader, 20, gapTolerance=50, fixedTimeColumn=fixedTimeCol)
+    newDf2 = newDf2.dropna(axis=0, how='any')
+
+    print('\ndf2 after resampling and dropna:')
+    print(newDf2)
+
+    # ==================================================================================
+    # df1 and df2 merging
+    # ==================================================================================
+
+    newDf1 = newDf1.set_index("unixtime")
+    newDf2 = newDf2.set_index("unixtime")
+    newDfConcat = pd.concat([newDf1,newDf2],axis=1)
+    newDfConcat = newDfConcat.dropna(axis=0, how='any')
+
+    print('After merging and dropna:')
     print(newDfConcat)
+
+
 
 
 
 if __name__ == '__main__':
 
-    test_case1()
-    # test_case2()
-    # test_case3()
+    # resample_test_case1()
+    # resample_test_case2()
+    merge_test_case1()
+    # merge_test_case2()
 
 
