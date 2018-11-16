@@ -15,11 +15,11 @@ import pandas as pd
 from calc_reliability import calc_reliability 
 
 
-def score_reliability(countDf, sensorFreq, unit):
+def score_reliability(countDf, sensorFreq=20, unit='second'):
     """
 
     :param countDf:
-    :param sensorFreq:
+    :param sensorFreq: in Hz
     :param unit:
     :return: None
     """
@@ -33,6 +33,10 @@ def score_reliability(countDf, sensorFreq, unit):
     # ==================================================================================
     # print out reliability score for has-data units and for all units
     # ==================================================================================
+
+    # todo: change output from unit='s' to accomodate other units
+
+    # todo: catch input error
     
     countDf.index = pd.to_datetime(countDf.index, unit='s', utc=True)
     print("Duration: {}".format(countDf.index[-1] - countDf.index[0]))
