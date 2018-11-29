@@ -39,3 +39,12 @@ The `PASDAC` project strives to abide by generally accepted best practices in op
 
 # License:
 `PASDAC` uses the XXX license. For more details find the `LICENSE.txt` file.
+
+## Git Tips
+
+From Atlassian, feature branch [workflow][1]
+
+
+## Links & References
+
+[1]: https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow

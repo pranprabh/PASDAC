@@ -6,7 +6,7 @@ Implement different segmentation algorithms
 import logging
 import pandas as pd
 import numpy as np
-from PASDAC.settings import SETTINGS
+# from PASDAC.settings import SETTINGS
 
 logger = logging.getLogger(__name__)
 

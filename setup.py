@@ -11,5 +11,7 @@ setup(
 	author_email='nabil@northwestern.edu',
 	license='MIT',
 	long_description=open('README.md').read(),
+	test_suite='nose.collector',
+	tests_require=['nose'],
 
 )

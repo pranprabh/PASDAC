@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 logger = logging.getLogger(__name__)
 
 
-def smoothboxcar(data, selected_columns, winsize):
+def smooth_boxcar(data, selected_columns, winsize):
     """Boxcar smoothing of data
 
     Parameters
@@ -49,7 +49,7 @@ def smoothboxcar(data, selected_columns, winsize):
     return smoothed
 
 
-def smoothgaussian(data, selected_columns, winsize, sigma):
+def smooth_gaussian(data, selected_columns, winsize, sigma):
     """Gaussian smoothing of data
 
     Parameters
@@ -85,3 +85,9 @@ def smoothgaussian(data, selected_columns, winsize, sigma):
             window / window.sum(), signal, mode='valid')
 
     return smoothed
+
+def smooth_joke():
+	from markdown import markdown
+	return markdown(u'Wenn ist das Nust\u00fcck git und Slotermeyer?'
+					u'Ja! ... **Beiherhund** das Oder die Flipperwladt '
+					u'gersput.')
