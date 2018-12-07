@@ -1,9 +1,12 @@
 """
-Functionality:
-    Calculate and print out the reliability score.
+Function:
+    score_reliability(countDf, sensorFreq=20, unit='second')
+
+    : Calculate and print out the reliability score.
 
 Requirement: 
-    Unixtimestamp must be in milliseconds.
+    package: python(either python2.x or python 3.x), pandas, numpy, matplotlib
+    The time must be unixtimestamp in milliseconds.
 
 """
 
@@ -15,28 +18,20 @@ import pandas as pd
 from calc_reliability import calc_reliability 
 
 
-def score_reliability(countDf, sensorFreq=20, unit='second'):
+def score_reliability(countDf, sensorFreq, unit='second'):
     """
+    Calculate and print out the reliability score.
 
-    :param countDf:
+    :param countDf: the dataframe of ['Time','SampleCounts'], which is the return of function calc_reliability
     :param sensorFreq: in Hz
-    :param unit:
-    :return: None
+    :param unit: str, options: "second", "minute", "hour"
+    :return: reliabilityHasDataUnits: the average reliability score for the units that has data 
+    :return: reliability: the average reliability score for all the units
     """
-
-    # # ==================================================================================
-    # # save reliability 
-    # # (This is a simple one-line command so it should be a seperate function - Shibo)
-    # # ==================================================================================
-    # countDf.to_csv(os.path.join(outfolder, 'reliability.csv'), index=False)
 
     # ==================================================================================
     # print out reliability score for has-data units and for all units
     # ==================================================================================
-
-    # todo: change output from unit='s' to accomodate other units
-
-    # todo: catch input error
     
     countDf.index = pd.to_datetime(countDf.index, unit='s', utc=True)
     print("Duration: {}".format(countDf.index[-1] - countDf.index[0]))

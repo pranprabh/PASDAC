@@ -1,10 +1,12 @@
 """
-Functionality:
-    Calculate the reliability of time series data from sensor.
+Function:
+    calc_reliability(timeArr, sensorFreq, unit, plot=0)
+
+    : Calculate the reliability of time series data from sensor.
 
 Requirement: 
-    Unixtimestamp must be in milliseconds.
-
+    package: python(either python2.x or python 3.x), pandas, numpy, matplotlib
+    The time must be unixtimestamp in milliseconds.
 
 Development log:
     1. function and script name the same - done
@@ -14,27 +16,6 @@ Development log:
     5. non-idle -> hasData - done
     6. add plot switch: reliability_calc(timeArr, sensorFreq, unit, plot=0) - done
     7. another script named 'save_reliability.py' - done
-
-
-Note: data structure revisit:
-
-    [participant]
-        [device]
-            [sensor]
-                [day]:
-                    [hour]: csv(s)
-            [sensor_reliability]: same structure as [day] folder, csv(s)
-
-    USE THIS FORMAT:
-
-    'acc'---'20180824'---'2018082408.csv'
-    'acc_reliability'--'20180824.csv'
-                    --'20180824'--'2018082408.csv'
-
-    'gyr'---'20180824'---'2018082408.csv'
-    'gyr_reliability'--'20180824.csv'
-                    --'20180824'--'2018082408.csv'
-
 
 """
 
@@ -47,15 +28,19 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def calc_reliability(timeArr, sensorFreq, unit, plot=0):
+def calc_reliability(timeArr, sensorFreq, unit='second', plot=0):
     """
-    Calculate the reliability of time series data from sensor.
+    Calculate the reliability of time series sensor data in each 'unit' from the start of the 'timeArr' to the end.
+    Plot is optional.
 
-    Requirement: unixtimestamp must be in milliseconds.
+    Requirement: timeArr must be unixtimestamp in milliseconds.
 
     :param timeArr: time array of unixtimestamp in milliseconds, size N*1
+    :param sensorFreq: in Hz
     :param unit: str, options: "second", "minute", "hour"
+    :param plot: 0 or 1
     :return countDf: reliability result dataframe with columns 'Time' and 'SampleCounts'.
+
     """
 
     # ==================================================================================
@@ -117,8 +102,8 @@ def calc_reliability(timeArr, sensorFreq, unit, plot=0):
 def test_case():
     filePath = '08-24-17_08.csv'
     timestampCol = 1
-    saveFolder = 'minute'
-    unit = 'minute'
+    saveFolder = 'second'
+    unit = 'second'
     sensorFreq = 20
 
     if not os.path.exists(saveFolder):
@@ -154,7 +139,7 @@ def call_from_cmd_line():
         print("Data file {} does not exists.".format(filePath))
         exit()
 
-    # requirement: unixtimestamp must be in milliseconds
+    # Requirement: timeArr must be unixtimestamp in milliseconds.
     countDf = calc_reliability(timeArr, sensorFreq, unit, plot=0)
 
 
