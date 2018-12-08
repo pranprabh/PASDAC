@@ -1,6 +1,6 @@
 """
 Function:
-    calc_reliability(timeArr, sensorFreq, unit, plot=0)
+    calc_reliability(timeArr, unit, plot=0)
 
     : Calculate the reliability of time series data from sensor.
 
@@ -14,7 +14,7 @@ Development log:
     3. modification: more comments - done
     4. (add y label in figure. - no figure saving) plot or not, to add one param y - done
     5. non-idle -> hasData - done
-    6. add plot switch: reliability_calc(timeArr, sensorFreq, unit, plot=0) - done
+    6. add plot switch: reliability_calc(timeArr, unit, plot=0) - done
     7. another script named 'save_reliability.py' - done
 
 """
@@ -28,7 +28,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def calc_reliability(timeArr, sensorFreq, unit='second', plot=0):
+def calc_reliability(timeArr, unit='second', plot=0):
     """
     Calculate the reliability of time series sensor data in each 'unit' from the start of the 'timeArr' to the end.
     Plot is optional.
@@ -36,7 +36,6 @@ def calc_reliability(timeArr, sensorFreq, unit='second', plot=0):
     Requirement: timeArr must be unixtimestamp in milliseconds.
 
     :param timeArr: time array of unixtimestamp in milliseconds, size N*1
-    :param sensorFreq: in Hz
     :param unit: str, options: "second", "minute", "hour"
     :param plot: 0 or 1
     :return countDf: reliability result dataframe with columns 'Time' and 'SampleCounts'.
@@ -75,9 +74,16 @@ def calc_reliability(timeArr, sensorFreq, unit='second', plot=0):
                 reliabilityTimeList.append(time)
                 # append 0 to noData seconds
                 reliabilitySampleCountsList.append(0)
+    
+    # With try-except, no need to check the input and the empty countDf will be returned.
+    # Advantage: In batch processing, when empty data files with only header exist, 
+    #  the reliability files will follow the same pattern.
+    try: 
+        reliabilityTimeList.append(timeNoDuplicateArr[-1])
+        reliabilitySampleCountsList.append(count + 1)
+    except:
+        print('Warning: timeArr is empty!')
 
-    reliabilityTimeList.append(timeNoDuplicateArr[-1])
-    reliabilitySampleCountsList.append(count + 1)
     countDf = pd.DataFrame({'Time':reliabilityTimeList,'SampleCounts':reliabilitySampleCountsList},\
                             columns=['Time','SampleCounts'])
 
@@ -104,7 +110,6 @@ def test_case():
     timestampCol = 1
     saveFolder = 'second'
     unit = 'second'
-    sensorFreq = 20
 
     if not os.path.exists(saveFolder):
         os.makedirs(saveFolder)
@@ -116,7 +121,7 @@ def test_case():
         exit()
 
     # requirement: unixtimestamp must be in milliseconds
-    countDf = calc_reliability(timeArr, sensorFreq, unit, plot=1)
+    countDf = calc_reliability(timeArr, unit, plot=1)
     print(countDf)
 
 
@@ -127,8 +132,6 @@ def call_from_cmd_line():
     saveFolder = str(sys.argv[2])
     # get the column of timestamp in data file
     timestampCol = int(sys.argv[3])
-    # get the sensor frequency setting
-    sensorFreq = int(sys.argv[4])
 
     if not os.path.exists(saveFolder):
         os.makedirs(saveFolder)
@@ -140,7 +143,7 @@ def call_from_cmd_line():
         exit()
 
     # Requirement: timeArr must be unixtimestamp in milliseconds.
-    countDf = calc_reliability(timeArr, sensorFreq, unit, plot=0)
+    countDf = calc_reliability(timeArr, unit, plot=0)
 
 
 if __name__ == "__main__":
