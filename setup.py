@@ -1,4 +1,4 @@
-from distutils.core import setup
+#from distutils.core import setup
 from setuptools import setup,find_packages
 # from setuptools import setup
 
@@ -10,8 +10,8 @@ setup(
 	# use MANIFEST.in during install
 	url='https://github.com/HAbitsLab/PASDAC',
 	description='Time Series Classification Pipeline',
-	author='Nabil Alshurafa',
-	author_email='nabil@northwestern.edu',
+	author='Sal Aguinaga','Nabil Alshurafa',
+	author_email='sal.aguinaga@','nabil@northwestern.edu',
 	license='MIT',
 	long_description=open('README.md').read(),
     install_requires=[],

@@ -1,5 +1,13 @@
 Reliability Test:
 ------------------------------------------------------------------------------------
+## Install PASDAC
+
+> `git clone git@github.com:HAbitsLab/PASDAC.git`
+
+> `cd PASDAC`
+
+> `pip install . --user`
+
 
 1. Function: calculate the reliablility for given data file, save counts per second in path_of_output/reliability.csv and plot the points of every second in path_of_output/reliability(frequency).png
 
