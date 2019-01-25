@@ -10,8 +10,10 @@ setup(
 	# use MANIFEST.in during install
 	url='https://github.com/HAbitsLab/PASDAC',
 	description='Time Series Classification Pipeline',
-	author='Sal Aguinaga','Nabil Alshurafa',
-	author_email='sal.aguinaga@','nabil@northwestern.edu',
+	author=['Shibo Zhang', 'Zach King', 'Rawan M Alharbi','Sal Aguinaga','Nabil Alshurafa'],
+	author_email='nabil@northwestern.edu',
+	maintainer='Sal Aguinaga',
+	maintainer_email='salvador.aguinaga@gmail.com',
 	license='MIT',
 	long_description=open('README.md').read(),
     install_requires=[],

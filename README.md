@@ -1,14 +1,29 @@
-Reliability Test:
-------------------------------------------------------------------------------------
+PASDAC 
+======
+
+PASDAC is a python library developed by the HABits Lab in the 
+departments of EECS (McCormick) and Preventive Medice (Feinberg). 
+
+... 
+
 ## Install PASDAC
 
 > `git clone git@github.com:HAbitsLab/PASDAC.git`
 
 > `cd PASDAC`
 
+Install (this works on the cluster quest as well).
+
 > `pip install . --user`
 
 
+## Introduction 
+
+TBD 
+
+# Testing (TBD)
+
+## Reliability Test:
 1. Function: calculate the reliablility for given data file, save counts per second in path_of_output/reliability.csv and plot the points of every second in path_of_output/reliability(frequency).png
 
 2. Requirement: python(either python2.x or python 3.x), pandas, numpy, matplotlib
