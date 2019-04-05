@@ -81,32 +81,32 @@ def calc_reliability(timeArr, unit='second', plot=0):
     try:
         reliabilityTimeList.append(timeNoDuplicateArr[-1])
         reliabilitySampleCountsList.append(count + 1)
-        except:
-            print('Warning: timeArr is empty!')
+    except:
+        print('Warning: timeArr is empty!')
 
-        countDf = pd.DataFrame({'Time':reliabilityTimeList,'SampleCounts':reliabilitySampleCountsList},\
+    countDf = pd.DataFrame({'Time':reliabilityTimeList,'SampleCounts':reliabilitySampleCountsList},\
                                columns=['Time','SampleCounts'])
 
-# ==================================================================================
-# plot figure
-# ==================================================================================
-if plot:
-    countDf['Time'] = pd.to_datetime(countDf['Time'], unit='s', utc=True)
-    countDf = countDf.set_index(['Time'])
-    countDf.index = countDf.index.tz_convert('US/Central')
-    
-    f = plt.figure(figsize=(12,5))
+    # ==================================================================================
+    # plot figure
+    # ==================================================================================
+    if plot:
+        countDf['Time'] = pd.to_datetime(countDf['Time'], unit='s', utc=True)
+        countDf = countDf.set_index(['Time'])
+        countDf.index = countDf.index.tz_convert('US/Central')
+        
+        f = plt.figure(figsize=(12,5))
         countDf.plot(style=['b-'], ax=f.gca())
         plt.title('Reliability Test')
         plt.ylabel('Count Per Unit')
         plt.show()
-    # plt.savefig(os.path.join(outfolder, 'reliability(frequency).png')) # FYI, save fig function
-    
+        # plt.savefig(os.path.join(outfolder, 'reliability(frequency).png')) # FYI, save fig function
+        
     return countDf
 
 
 def test_case():
-    filePath = '08-24-17_08.csv'
+    filePath = 'tests/08-24-17_08.csv'
     timestampCol = 1
     saveFolder = 'second'
     unit = 'second'
