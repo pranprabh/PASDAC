@@ -106,7 +106,7 @@ def calc_reliability(timeArr, unit='second', plot=0):
 
 
 def test_case():
-    filePath = '08-24-17_08.csv'
+    filePath = 'tests/08-24-17_08.csv'
     timestampCol = 1
     saveFolder = 'second'
     unit = 'second'

@@ -60,7 +60,7 @@ def score_reliability(countDf, sensorFreq, unit='second'):
 
 
 def test_case():
-    filePath = '08-24-17_08.csv'
+    filePath = 'tests/08-24-17_08.csv'
     timestampCol = 1
     saveFolder = 'minute'
     unit = 'minute'
@@ -76,7 +76,7 @@ def test_case():
         exit()
 
     # requirement: unixtimestamp must be in milliseconds
-    countDf = calc_reliability(timeArr, sensorFreq, unit, plot=0)
+    countDf = calc_reliability(timeArr, unit, plot=0)
     countDf.to_csv(os.path.join(saveFolder, 'reliability.csv'), index=False)
 
     score_reliability(countDf, sensorFreq, unit)
