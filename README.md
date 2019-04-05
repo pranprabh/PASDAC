@@ -19,7 +19,7 @@ Install (this works on the cluster quest as well).
 
 ## Introduction 
 
-TBD 
+TBD.
 
 # Testing (TBD)
 
