@@ -55,7 +55,10 @@ def resample(dataDf, timeColHeader, samplingRate, gapTolerance=np.inf, fixedTime
         then interpolation is nan
         if gapTolerance=0, the gapTolerance rule will not exist
 
-    fixedTimeColumn:
+    fixedTimeColumn: np array
+        Represents the sampling positions on which the resampling is based.
+        Used when merge two sensors‘ time series data together at common sampling positions.
+
 
     Examples
     --------
@@ -279,6 +282,7 @@ def resample_test_case1():
     df['unixtime'] = unix
     newDf = resample(df, timeColHeader, 20, gapTolerance=50)
     newDf = newDf.dropna(axis=0, how='any')
+    print('df_A after resampling:')
     print(newDf)
 
     fixedTimeCol = newDf['unixtime'].values
@@ -287,14 +291,20 @@ def resample_test_case1():
                       columns=['D', 'E', 'F'])
     unix = np.array([1499999999999,1500000000047,1500000000077,1500000000300,1500000000375])
     df1['unixtime'] = unix
+    print('\ndf_B before resampling:')
     print(df1)
 
     newDf1 = resample(df1, timeColHeader, 20, gapTolerance=50, fixedTimeColumn=fixedTimeCol)
+    print('\ndf_B after resampling based on the time column of df_A. \
+        Note that the last row has nan since the gap over gapTolerance exists.')
+    print(newDf1)
+
     newDf = newDf.set_index("unixtime")
     newDf1 = newDf1.set_index("unixtime")
     newDfConcat = pd.concat([newDf,newDf1],axis=1)
     newDfConcat = newDfConcat.dropna(axis=0, how='any')
 
+    print('\nconcat df_A and df_B:')
     print(newDfConcat)
 
 
